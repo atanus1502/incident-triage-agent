@@ -1,0 +1,12 @@
+# Service catalog for the test accounts: sandbox GitHub repo, Datadog trial, ServiceNow developer instance.
+services:
+  payments-api:
+    aliases: ["Payments API", "payments-api-prod", "PAYMENTS-API"]
+    repo: atanus1502/payments-api-sandbox
+    deploy_environment: production
+    datadog_service: payments-api
+    datadog_env: prod
+    servicenow_ci: payments-api-prod
+    pagerduty_service_id: PAJFMI1
+    owner_team: Payments Platform
+    dependencies: [core-ledger, fraud-scoring, postgres-payments]

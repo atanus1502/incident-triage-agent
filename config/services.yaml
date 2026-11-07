@@ -1,0 +1,26 @@
+# Service catalog. The agent calls lookup_service first so it knows where to look.
+# `aliases` are the names that appear in PagerDuty service titles / ServiceNow CIs.
+services:
+  payments-api:
+    aliases: ["Payments API", "payments-api-prod", "PAYMENTS-API"]
+    repo: yourbank/payments-api
+    deploy_environment: production
+    datadog_service: payments-api
+    datadog_env: prod
+    servicenow_ci: payments-api-prod
+    pagerduty_service_id: PXXXXXX
+    owner_team: Payments Platform
+    runbook_url: https://wiki.yourbank.internal/runbooks/payments-api
+    dependencies: [core-ledger, fraud-scoring, postgres-payments]
+
+  online-banking-web:
+    aliases: ["Online Banking", "obw-prod"]
+    repo: yourbank/online-banking-web
+    deploy_environment: production
+    datadog_service: online-banking-web
+    datadog_env: prod
+    servicenow_ci: online-banking-web-prod
+    pagerduty_service_id: PYYYYYY
+    owner_team: Digital Channels
+    runbook_url: https://wiki.yourbank.internal/runbooks/online-banking-web
+    dependencies: [auth-gateway, payments-api, accounts-api]

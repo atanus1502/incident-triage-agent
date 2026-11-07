@@ -1,0 +1,118 @@
+{
+  "id": "EXAMPLE-002",
+  "alert": {
+    "source": "servicenow",
+    "id": "INC0052210",
+    "title": "Card authorisations timing out at fraud-scoring step",
+    "service": "payments-api-prod",
+    "severity": "1 - Critical",
+    "triggered_at": "2026-04-09T02:17:00Z"
+  },
+  "ground_truth": {
+    "root_cause": "Network change CHG0052190 tightened firewall rules on the data-centre core and dropped the path from payments-api to the fraud-scoring cluster's new subnet; calls hung until the 3s client timeout.",
+    "culprit": "CHG0052190",
+    "category": "infra"
+  },
+  "fixtures": {
+    "lookup_service": [
+      {
+        "match": {},
+        "response": {
+          "service": "payments-api",
+          "repo": "yourbank/payments-api",
+          "deploy_environment": "production",
+          "datadog_service": "payments-api",
+          "datadog_env": "prod",
+          "servicenow_ci": "payments-api-prod",
+          "pagerduty_service_id": "PXXXXXX",
+          "owner_team": "Payments Platform",
+          "runbook_url": "https://wiki.yourbank.internal/runbooks/payments-api",
+          "dependencies": [
+            "core-ledger",
+            "fraud-scoring",
+            "postgres-payments"
+          ]
+        }
+      }
+    ],
+    "github_deployments": [
+      {
+        "match": {},
+        "response": []
+      }
+    ],
+    "servicenow_changes": [
+      {
+        "match": {},
+        "response": [
+          {
+            "number": "CHG0052190",
+            "short_description": "Core firewall rule consolidation - DC2 east/west",
+            "type": "normal",
+            "state": "Review",
+            "start_date": "2026-04-09 01:30:00",
+            "end_date": "2026-04-09 02:30:00",
+            "cmdb_ci": "dc2-core-fw",
+            "assignment_group": "Network Engineering"
+          }
+        ]
+      }
+    ],
+    "servicenow_get_record": [
+      {
+        "match": {
+          "number": "CHG0052190"
+        },
+        "response": {
+          "number": "CHG0052190",
+          "short_description": "Core firewall rule consolidation - DC2 east/west",
+          "implementation_plan": "Replace 140 legacy per-host rules with subnet-based rules generated from the CMDB export of 2026-03-20.",
+          "backout_plan": "Restore rulebase snapshot fw-dc2-20260408."
+        }
+      }
+    ],
+    "datadog_search_logs": [
+      {
+        "match": {},
+        "response": [
+          {
+            "timestamp": "2026-04-09T02:16:40Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-3",
+            "message": "fraud-scoring call failed: ConnectTimeout after 3000ms host=10.42.18.21:8443"
+          },
+          {
+            "timestamp": "2026-04-09T01:52:13Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-1",
+            "message": "fraud-scoring call failed: ConnectTimeout after 3000ms host=10.42.18.17:8443"
+          }
+        ]
+      }
+    ],
+    "datadog_events": [
+      {
+        "match": {},
+        "response": [
+          {
+            "date": "2026-03-28T10:00:00Z",
+            "title": "fraud-scoring migrated to subnet 10.42.18.0/24",
+            "text": "Cluster move complete",
+            "source": "ansible",
+            "tags": [
+              "service:fraud-scoring"
+            ]
+          }
+        ]
+      }
+    ],
+    "servicenow_search_incidents": [
+      {
+        "match": {},
+        "response": []
+      }
+    ]
+  }
+}

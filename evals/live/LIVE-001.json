@@ -1,0 +1,137 @@
+{
+  "id": "LIVE-001",
+  "alert": {
+    "source": "pagerduty",
+    "id": "Q1LIVE001",
+    "title": "payments-api 5xx rate above 5% for 5 minutes",
+    "service": "Payments API",
+    "severity": "P1",
+    "triggered_at": "2026-11-07T01:55:44Z"
+  },
+  "ground_truth": {
+    "root_cause": "Deploy 83a3b63 (PR #1) of payments-api added an N+1 query in per-payee transfer-limit validation, exhausting the database connection pool under load; requests timed out waiting for connections and returned 503.",
+    "culprit": "83a3b63",
+    "category": "deploy"
+  },
+  "fixtures": {
+    "lookup_service": [
+      {
+        "match": {},
+        "response": {
+          "service": "payments-api",
+          "repo": "atanus1502/payments-api-sandbox",
+          "deploy_environment": "production",
+          "datadog_service": "payments-api",
+          "datadog_env": "prod",
+          "servicenow_ci": "payments-api-prod",
+          "pagerduty_service_id": "PXXXXXX",
+          "owner_team": "Payments Platform",
+          "runbook_url": "https://wiki.yourbank.internal/runbooks/payments-api",
+          "dependencies": [
+            "core-ledger",
+            "fraud-scoring",
+            "postgres-payments"
+          ]
+        }
+      }
+    ],
+    "datadog_search_logs": [
+      {
+        "match": {
+          "query": "payments-api"
+        },
+        "response": [
+          {
+            "timestamp": "2026-11-07T01:55:35Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-2",
+            "message": "sqlalchemy.exc.TimeoutError: QueuePool limit of size 40 overflow 10 reached, connection timed out, timeout 5.00"
+          },
+          {
+            "timestamp": "2026-11-07T01:55:34Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-4",
+            "message": "POST /v2/transfers 503 upstream_timeout duration_ms=5012"
+          },
+          {
+            "timestamp": "2026-11-07T01:48:46Z",
+            "service": "payments-api",
+            "status": "warn",
+            "host": "pay-7c9f-1",
+            "message": "slow request POST /v2/transfers duration_ms=2210 db_queries=37"
+          }
+        ]
+      }
+    ],
+    "datadog_query_metrics": [
+      {
+        "match": {
+          "query": "error"
+        },
+        "response": [
+          {
+            "scope": "service:payments-api,env:prod",
+            "unit": null,
+            "points": [
+              [
+                "2026-11-07T01:20:44Z",
+                3
+              ],
+              [
+                "2026-11-07T01:30:44Z",
+                4
+              ],
+              [
+                "2026-11-07T01:40:44Z",
+                41
+              ],
+              [
+                "2026-11-07T01:45:44Z",
+                180
+              ],
+              [
+                "2026-11-07T01:50:44Z",
+                612
+              ],
+              [
+                "2026-11-07T01:55:44Z",
+                1490
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "match": {
+          "query": "connections"
+        },
+        "response": [
+          {
+            "scope": "db:payments",
+            "unit": null,
+            "points": [
+              [
+                "2026-11-07T01:20:44Z",
+                61
+              ],
+              [
+                "2026-11-07T01:35:44Z",
+                88
+              ],
+              [
+                "2026-11-07T01:45:44Z",
+                197
+              ],
+              [
+                "2026-11-07T01:55:44Z",
+                200
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

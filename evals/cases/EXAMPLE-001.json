@@ -1,0 +1,229 @@
+{
+  "id": "EXAMPLE-001",
+  "alert": {
+    "source": "pagerduty",
+    "id": "Q1EXAMPLE001",
+    "title": "payments-api 5xx rate above 5% for 5 minutes",
+    "service": "Payments API",
+    "severity": "P1",
+    "triggered_at": "2026-04-02T14:05:00Z"
+  },
+  "ground_truth": {
+    "root_cause": "Deploy 9f3c2ab of payments-api added an N+1 query in the transfer-limits check, exhausting the Postgres connection pool under lunchtime load; requests timed out waiting for connections and returned 503.",
+    "culprit": "9f3c2ab",
+    "category": "deploy"
+  },
+  "fixtures": {
+    "lookup_service": [
+      {
+        "match": {},
+        "response": {
+          "service": "payments-api",
+          "repo": "yourbank/payments-api",
+          "deploy_environment": "production",
+          "datadog_service": "payments-api",
+          "datadog_env": "prod",
+          "servicenow_ci": "payments-api-prod",
+          "pagerduty_service_id": "PXXXXXX",
+          "owner_team": "Payments Platform",
+          "runbook_url": "https://wiki.yourbank.internal/runbooks/payments-api",
+          "dependencies": [
+            "core-ledger",
+            "fraud-scoring",
+            "postgres-payments"
+          ]
+        }
+      }
+    ],
+    "github_deployments": [
+      {
+        "match": {
+          "repo": "payments-api"
+        },
+        "response": [
+          {
+            "id": 88121,
+            "sha": "9f3c2ab41d0e",
+            "ref": "main",
+            "created_at": "2026-04-02T13:41:12Z",
+            "creator": "deploy-bot",
+            "description": "Release 2026.04.02-1"
+          },
+          {
+            "id": 88087,
+            "sha": "51be07c9aa12",
+            "ref": "main",
+            "created_at": "2026-04-01T16:02:40Z",
+            "creator": "deploy-bot",
+            "description": "Release 2026.04.01-2"
+          }
+        ]
+      }
+    ],
+    "github_compare": [
+      {
+        "match": {
+          "head": "9f3c2ab"
+        },
+        "response": {
+          "total_commits": 3,
+          "commits": [
+            {
+              "sha": "9f3c2ab41d0e",
+              "author": "R. Okafor",
+              "message": "Check per-payee transfer limits during transfer validation (#2291)"
+            },
+            {
+              "sha": "7d1e8f0b2c33",
+              "author": "M. Chen",
+              "message": "Bump fraud-scoring client to 4.2.1"
+            },
+            {
+              "sha": "c0aa91e5f1d2",
+              "author": "M. Chen",
+              "message": "Fix typo in OpenAPI description"
+            }
+          ],
+          "files": [
+            {
+              "file": "src/transfers/validation.py",
+              "status": "modified",
+              "additions": 22,
+              "deletions": 3,
+              "patch": "@@ -88,6 +88,25 @@ def validate_transfer(req):\n+    for payee in req.payees:\n+        limit = db.query(TransferLimit).filter_by(payee_id=payee.id).first()\n+        if limit and payee.amount > limit.max_amount:\n+            raise LimitExceeded(payee.id)"
+            }
+          ]
+        }
+      }
+    ],
+    "datadog_search_logs": [
+      {
+        "match": {
+          "query": "payments-api"
+        },
+        "response": [
+          {
+            "timestamp": "2026-04-02T14:04:51Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-2",
+            "message": "sqlalchemy.exc.TimeoutError: QueuePool limit of size 40 overflow 10 reached, connection timed out, timeout 5.00"
+          },
+          {
+            "timestamp": "2026-04-02T14:04:50Z",
+            "service": "payments-api",
+            "status": "error",
+            "host": "pay-7c9f-4",
+            "message": "POST /v2/transfers 503 upstream_timeout duration_ms=5012"
+          },
+          {
+            "timestamp": "2026-04-02T13:58:02Z",
+            "service": "payments-api",
+            "status": "warn",
+            "host": "pay-7c9f-1",
+            "message": "slow request POST /v2/transfers duration_ms=2210 db_queries=37"
+          }
+        ]
+      }
+    ],
+    "datadog_query_metrics": [
+      {
+        "match": {
+          "query": "error"
+        },
+        "response": [
+          {
+            "scope": "service:payments-api,env:prod",
+            "unit": null,
+            "points": [
+              [
+                "2026-04-02T13:30:00Z",
+                3
+              ],
+              [
+                "2026-04-02T13:40:00Z",
+                4
+              ],
+              [
+                "2026-04-02T13:50:00Z",
+                41
+              ],
+              [
+                "2026-04-02T13:55:00Z",
+                180
+              ],
+              [
+                "2026-04-02T14:00:00Z",
+                612
+              ],
+              [
+                "2026-04-02T14:05:00Z",
+                1490
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "match": {
+          "query": "connections"
+        },
+        "response": [
+          {
+            "scope": "db:payments",
+            "unit": null,
+            "points": [
+              [
+                "2026-04-02T13:30:00Z",
+                61
+              ],
+              [
+                "2026-04-02T13:45:00Z",
+                88
+              ],
+              [
+                "2026-04-02T13:55:00Z",
+                197
+              ],
+              [
+                "2026-04-02T14:05:00Z",
+                200
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "servicenow_changes": [
+      {
+        "match": {},
+        "response": [
+          {
+            "number": "CHG0051877",
+            "short_description": "payments-api release 2026.04.02-1",
+            "type": "standard",
+            "state": "Implement",
+            "start_date": "2026-04-02 13:30:00",
+            "end_date": "2026-04-02 14:30:00",
+            "cmdb_ci": "payments-api-prod",
+            "assignment_group": "Payments Platform"
+          }
+        ]
+      }
+    ],
+    "servicenow_search_incidents": [
+      {
+        "match": {},
+        "response": [
+          {
+            "number": "INC0039120",
+            "short_description": "payments-api 503s - DB connection pool exhausted",
+            "opened_at": "2025-11-14 12:20:00",
+            "close_code": "Solved (Permanently)",
+            "close_notes": "Release introduced per-row lookups in statement export. Rolled back via emergency change, fixed with a batched query."
+          }
+        ]
+      }
+    ]
+  }
+}

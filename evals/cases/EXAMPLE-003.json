@@ -1,0 +1,113 @@
+{
+  "id": "EXAMPLE-003",
+  "alert": {
+    "source": "pagerduty",
+    "id": "Q1EXAMPLE003",
+    "title": "Online banking login success rate below 90%",
+    "service": "Online Banking",
+    "severity": "P2",
+    "triggered_at": "2026-05-01T00:04:00Z"
+  },
+  "ground_truth": {
+    "root_cause": "The mTLS client certificate that online-banking-web uses to call auth-gateway expired at 2026-05-01T00:00Z; handshakes failed for pods that had reloaded the cert store.",
+    "culprit": null,
+    "category": "dependency"
+  },
+  "fixtures": {
+    "lookup_service": [
+      {
+        "match": {},
+        "response": {
+          "service": "online-banking-web",
+          "repo": "yourbank/online-banking-web",
+          "deploy_environment": "production",
+          "datadog_service": "online-banking-web",
+          "datadog_env": "prod",
+          "servicenow_ci": "online-banking-web-prod",
+          "pagerduty_service_id": "PYYYYYY",
+          "owner_team": "Digital Channels",
+          "runbook_url": "https://wiki.yourbank.internal/runbooks/online-banking-web",
+          "dependencies": [
+            "auth-gateway",
+            "payments-api",
+            "accounts-api"
+          ]
+        }
+      }
+    ],
+    "github_deployments": [
+      {
+        "match": {},
+        "response": []
+      }
+    ],
+    "servicenow_changes": [
+      {
+        "match": {},
+        "response": []
+      }
+    ],
+    "datadog_search_logs": [
+      {
+        "match": {},
+        "response": [
+          {
+            "timestamp": "2026-05-01T00:03:12Z",
+            "service": "online-banking-web",
+            "status": "error",
+            "host": "obw-55d-7",
+            "message": "auth-gateway request failed: SSLError certificate verify failed: certificate has expired (_ssl.c:1006)"
+          },
+          {
+            "timestamp": "2026-05-01T00:01:47Z",
+            "service": "online-banking-web",
+            "status": "error",
+            "host": "obw-55d-2",
+            "message": "login failed for session 8c1e..: upstream auth-gateway handshake error"
+          }
+        ]
+      }
+    ],
+    "datadog_alerting_monitors": [
+      {
+        "match": {},
+        "response": [
+          {
+            "name": "auth-gateway TLS handshake failures",
+            "state": "Alert",
+            "query": "sum:auth_gateway.tls.handshake_failures{*}",
+            "tags": [
+              "service:auth-gateway"
+            ]
+          }
+        ]
+      }
+    ],
+    "servicenow_search_incidents": [
+      {
+        "match": {},
+        "response": [
+          {
+            "number": "INC0031544",
+            "short_description": "Online banking logins failing - expired client cert to auth-gateway",
+            "opened_at": "2025-05-01 00:06:00",
+            "close_code": "Solved (Work Around)",
+            "close_notes": "Annual mTLS client cert expired at midnight. Renewed via PKI portal and rolled pods. Problem PRB0004410 raised to automate renewal."
+          }
+        ]
+      }
+    ],
+    "servicenow_search_knowledge": [
+      {
+        "match": {},
+        "response": [
+          {
+            "number": "KB0010233",
+            "short_description": "Renewing the online-banking-web to auth-gateway client certificate",
+            "text": "1. Request renewal in the PKI portal (template OBW-AUTHGW-CLIENT). 2. Update secret obw/authgw-client-cert. 3. Raise a standard change to roll the online-banking-web deployment."
+          }
+        ]
+      }
+    ]
+  }
+}
