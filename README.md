@@ -31,7 +31,7 @@ submit_triage               structured report, checked against a schema
 Slack post  ──►  on-call clicks right/wrong  ──►  feedback log
 ```
 
-**Example Slack post** (the top of the post, from a synthetic test incident):
+**Example Slack post** (from a synthetic test incident, with the middle sections left out):
 
 ![Triage post in Slack showing the likely root cause, confidence level and evidence](docs/slack-triage-post.png)
 
